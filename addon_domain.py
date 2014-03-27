@@ -7,7 +7,7 @@ import ConfigParser
 def main():
   cpanel_config = False
 
-  # Check if /root/.cpanel.cnf exists
+  # Check if ./.cpanel.cnf exists
   if os.path.isfile("./.cpanel.cnf"): 
     cpanel_config = "./.cpanel.cnf"
   if not cpanel_config:
