@@ -35,7 +35,7 @@ def main():
     except Exception, e:
       print ("Could not get any cPanel password information from %s." % (cpanel_config))
       sys.exit(0)   
-  print (cpanel_server,cpanel_user,cpanel_password)
+
   server = pycpanel.conn(hostname=cpanel_server, username=cpanel_user, 
   	                   hash=None, password=cpanel_password, ssl=True, verify=False, check_conn=False)
   params = {
