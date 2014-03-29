@@ -51,23 +51,11 @@ echo >domainlist_$account_id>domains_list_$account_id>domains_list1_$account_id>
        select dir from unix_user,parent_child where unix_user.id = parent_child.child_id and parent_child.account_id = $account_id  and login=group_name`)
 
   echo  "rsync -avze ssh $home_dir/$main_domain/ root@$target:/home/$target_username/www/" >> web_migrate_remote.sh
-
-  # Add the remaining domains to cPanel and rsync commands to script
+ 
   rm -rf addon_domain.sh add_subdomain.sh
   touch addon_domain.sh add_subdomain.sh
   rm -rf remote_dns_ips.txt
   sub_check=suffix
-  if [[ "$count" -gt 1 ]]; then
-     for i in `cat domainlist_$account_id`
-     do
-       pre=$(echo ${i//[.]/})
-       ftp_user=$(echo ${pre:0:7})
-       dig NS $i +short | awk 'NR==1 {print $1}' | xargs host | awk 'NR==1 {print $NF}' >> remote_dns_ips.txt
-       echo -e "/usr/local/bin/python2.7 addon_domain.py $i $i $ftp_user $target_username" >> addon_domain.sh
-       echo  "rsync -avze ssh $home_dir/$i/ root@$target:/home/$target_username/$i/" >> web_migrate_remote.sh
-     done
-  fi
-  
   # Add subdomains to cPanel and rsuny commands to script
   if [[ "$count" -gt 1 ]]; then
      for i in `cat sub_domains_list1_$account_id`
@@ -76,7 +64,7 @@ echo >domainlist_$account_id>domains_list_$account_id>domains_list1_$account_id>
        root_domain=$(echo ${json_result//[:\"\}\{,]} | awk '{print $2"."$NF}')
        sub_domain=$(echo ${json_result//[:\"\}\{,]} | awk '{print $4}')
        if [[ $sub_check == "$sub_domain" ]]; then
-         continue; 
+         add_addon_domain $i $target_username
        else
          echo "$sub_domain is subdomain of the domain $i"
          echo -e "/usr/local/bin/python2.7 add_subdomain.py $sub_domain $root_domain $target_username" >> add_subdomain.sh
@@ -99,6 +87,15 @@ echo >domainlist_$account_id>domains_list_$account_id>domains_list1_$account_id>
   ssh -l root $server_ip chmod 755 /root/web_migrate_remote.sh
   ssh -l root $server_ip sh /root/web_migrate_remote.sh
   ssh -l root $target chown $target_username.$target_username /home/$target_username/public_html/ -R
+}
+
+# Add the remaining domains to cPanel and rsync commands to script
+add_addon_domain(){
+  pre=$(echo ${i//[.]/})
+  ftp_user=$(echo ${pre:0:7})
+  dig NS $i +short | awk 'NR==1 {print $1}' | xargs host | awk 'NR==1 {print $NF}' >> remote_dns_ips.txt
+  echo -e "/usr/local/bin/python2.7 addon_domain.py $i $i $ftp_user $target_username" >> addon_domain.sh
+  echo  "rsync -avze ssh $home_dir/$i/ root@$target:/home/$target_username/$i/" >> web_migrate_remote.sh
 }
 
 # Force user to enter input in proper fromat
