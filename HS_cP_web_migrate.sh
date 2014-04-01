@@ -33,15 +33,16 @@ echo >domainlist_$account_id>domains_list_$account_id>domains_list1_$account_id>
        select ip1 from p_server where id = (select p_server_id from l_server where id = $lserver_id)`)
   # cat domains_list_$account_id
   cat domains_list_$account_id | uniq >  domains_list1_$account_id  
-  cp -arp domains_list1_$account_id sub_domains_list1_$account_id
+
   # Arrange the domains in a file
   for i in `cat domains_list1_$account_id`
   do
     echo $i >> domainlist_$account_id
   done
+  cp -arp domains_list_$account_id sub_domains_list_$account_id
   
   # Remove the main domain from the list
-  sed /`echo $main_domain`/d domainlist_$account_id -i
+  sed 's/\<`echo $main_domain`\>//g' domainlist_$account_id -i
   count=$(cat domainlist_$account_id  | wc -l)
 
   # Add the main domain to for rsync in the script
@@ -58,7 +59,7 @@ echo >domainlist_$account_id>domains_list_$account_id>domains_list1_$account_id>
   sub_check=suffix
   # Add subdomains to cPanel and rsuny commands to script
   if [[ "$count" -gt 1 ]]; then
-     for i in `cat sub_domains_list1_$account_id`
+     for i in `cat sub_domains_list_$account_id`
      do
        json_result=$(curl -s "http://tldextract.appspot.com/api/extract?url=$i")
        root_domain=$(echo ${json_result//[:\"\}\{,]} | awk '{print $2"."$NF}')
