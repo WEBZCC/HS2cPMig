@@ -27,7 +27,7 @@ echo >domainlist_$account_id>domains_list_$account_id>domains_list1_$account_id>
   lserver_id=$(echo `cat << EOF | psql -q -U $hsphere_db_user $hsphere_db
       \pset t
        select DISTINCT hostid from unix_user, parent_child where 
-       parent_child.account_id = $account_id and child_id = unix_user.id`)
+       parent_child.account_id = $account_id and child_id = unix_user.id and login=group_name`)
   server_ip=$(echo `cat << EOF | psql -q -U $hsphere_db_user $hsphere_db
       \pset t
        select ip1 from p_server where id = (select p_server_id from l_server where id = $lserver_id)`)
